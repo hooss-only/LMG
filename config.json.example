@@ -1,4 +1,8 @@
 {
 	"token": "your.bot.token",
-	"gallaryId": "id"
+	"gallaryId": "id",
+	"guildId": "id",
+	"clientId": "your bot id",
+	"rankChannelId: "id",
+	"gaechuEmojiName": "🐨"
 }
