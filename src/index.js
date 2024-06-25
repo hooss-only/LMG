@@ -1,14 +1,76 @@
-import { Client, GatewayIntentBits } from 'discord.js';
+import { Client, GatewayIntentBits, EmbedBuilder } from 'discord.js';
 import config from '../config.json' assert { type: "json" };
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
-client.on('ready', () => {
-	client.channels.fetch('1143189870186082314')
-		.then(channel => channel.threads.fetchActive())
-		.then(threads => console.log(threads))
-		.catch(console.error);
+const getActiveThreads = async () => {
+	const gallary = client.channels.fetch(config.gallaryId);
+	return gallary.then(channel => channel.threads.fetchActive());
+}
+
+const getReactions = async (thread) => {
+	const starterMessage = thread.fetchStarterMessage()
+	return starterMessage.then(message => message.reactions.cache)
+}
 
 
+const getRanking = async () => {
+	const today = new Date();
+	const threeDaysAgo = new Date(today.getFullYear(), today.getMonth(), today.getDate()-4);
+
+	let recentPosts = [];
+	
+	const activeThreads = await getActiveThreads();
+
+	activeThreads.threads.forEach(thread => {
+			const threadCreatedDate = thread.createdAt;
+			threadCreatedDate.setHours(0, 0, 0, 0);
+
+			if (threadCreatedDate >= threeDaysAgo) {
+				recentPosts.push(thread)	
+			}
+	});
+	
+	let arr = []
+	for (const thread of recentPosts) {
+		const reactions = await getReactions(thread);
+		const gaechu = reactions.find(reaction => reaction._emoji.name == config.gaechuEmojiName);
+		
+		if (typeof gaechu != 'undefined') arr.push([thread, gaechu.count+thread.messageCount, gaechu.count]);
+	}
+
+	arr.sort((a,b) => b[1]-a[1])
+	return arr.slice(0, 5)
+}
+
+const getRankingEmbed = async () => {
+	let ranking = []
+	await getRanking().then(rank => ranking = rank);
+	let description = "";
+	let i = 1;
+	ranking.forEach(post => {
+		description += `${i}. https://discord.com/channels/${config.guildId}/${post[0].id} / ${config.gaechuEmojiName}: ${post[2]} / 댓글: ${post[0].messageCount}\n`;
+		i+=1;
+	});
+	
+
+	const rankingEmbed = new EmbedBuilder()
+		.setTitle('오늘의 개념글')
+		.setTimestamp()
+		.setFooter({ text: '최근 5일 상위 5개글' })
+		.setDescription(description);
+	return rankingEmbed;
+}
+
+client.on('interactionCreate', async interaction => {
+  if (!interaction.isChatInputCommand()) return;
+
+  if (interaction.commandName === 'rank') {
+		const rankingEmbed = await getRankingEmbed()
+		await interaction.reply({ embeds: [rankingEmbed] });
+  }
+});
+
+client.on('ready', async () => {
   console.log(`Logged in as ${client.user.tag}!`);
 });
 
