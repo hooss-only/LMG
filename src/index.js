@@ -1,4 +1,5 @@
 import { Client, GatewayIntentBits, EmbedBuilder } from 'discord.js';
+import cron from 'node-cron';
 import config from '../config.json' assert { type: "json" };
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
@@ -8,10 +9,9 @@ const getActiveThreads = async () => {
 }
 
 const getReactions = async (thread) => {
-	const starterMessage = thread.fetchStarterMessage()
-	return starterMessage.then(message => message.reactions.cache)
+	const starterMessage = thread.fetchStarterMessage();
+	return starterMessage.then(message => message.reactions.cache);
 }
-
 
 const getRanking = async () => {
 	const today = new Date();
@@ -26,7 +26,7 @@ const getRanking = async () => {
 			threadCreatedDate.setHours(0, 0, 0, 0);
 
 			if (threadCreatedDate >= threeDaysAgo) {
-				recentPosts.push(thread)	
+				recentPosts.push(thread);	
 			}
 	});
 	
@@ -38,8 +38,15 @@ const getRanking = async () => {
 		if (typeof gaechu != 'undefined') arr.push([thread, gaechu.count+thread.messageCount, gaechu.count]);
 	}
 
-	arr.sort((a,b) => b[1]-a[1])
-	return arr.slice(0, 5)
+	arr.sort((a,b) => b[1]-a[1]);
+	return arr.slice(0, 5);
+}
+
+const sendRanking = async () => {
+	const channel = await client.channels.fetch(config.rankChannelId);
+	const embed = await getRankingEmbed();
+
+	channel.send({ embeds: [embed] });
 }
 
 const getRankingEmbed = async () => {
@@ -51,7 +58,6 @@ const getRankingEmbed = async () => {
 		description += `${i}. https://discord.com/channels/${config.guildId}/${post[0].id} / ${config.gaechuEmojiName}: ${post[2]} / 댓글: ${post[0].messageCount}\n`;
 		i+=1;
 	});
-	
 
 	const rankingEmbed = new EmbedBuilder()
 		.setTitle('오늘의 개념글')
@@ -72,6 +78,10 @@ client.on('interactionCreate', async interaction => {
 
 client.on('ready', async () => {
   console.log(`Logged in as ${client.user.tag}!`);
+	cron.schedule("0 0,12,22 * * *", () => {
+		console.log('sent a ranking');
+		sendRanking();
+	});
 });
 
 client.login(config.token);
