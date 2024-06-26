@@ -35,9 +35,9 @@ const getRanking = async () => {
 		const reactions = await getReactions(thread);
 		const gaechu = reactions.find(reaction => reaction._emoji.name == config.gaechuEmojiName);
 		
-		if (typeof gaechu != 'undefined') arr.push([thread, gaechu.count+thread.messageCount, gaechu.count]);
+		if (typeof gaechu != 'undefined') arr.push([thread, gaechu.count+thread.memberCount, gaechu.count]);
 	}
-
+	
 	arr.sort((a,b) => b[1]-a[1]);
 	return arr.slice(0, 5);
 }
@@ -55,7 +55,7 @@ const getRankingEmbed = async () => {
 	let description = "";
 	let i = 1;
 	ranking.forEach(post => {
-		description += `${i}. https://discord.com/channels/${config.guildId}/${post[0].id} / ${config.gaechuEmojiName}: ${post[2]} / 댓글: ${post[0].messageCount}\n`;
+		description += `${i}. https://discord.com/channels/${config.guildId}/${post[0].id} / ${config.gaechuEmojiName}: ${post[2]} / 참여자 수: ${post[0].memberCount}\n`;
 		i+=1;
 	});
 
@@ -72,8 +72,9 @@ client.on('interactionCreate', async interaction => {
   if (!interaction.isChatInputCommand()) return;
 
   if (interaction.commandName === 'rank') {
+		await interaction.reply('thinking...');
 		const rankingEmbed = await getRankingEmbed()
-		await interaction.reply({ embeds: [rankingEmbed] });
+		await interaction.editReply({ content: '', embeds: [rankingEmbed] });
   }
 
 	if (interaction.commandName === 'ping') {
