@@ -1,4 +1,4 @@
-import { Client, GatewayIntentBits, EmbedBuilder } from 'discord.js';
+import { Client, GatewayIntentBits, EmbedBuilder, ActivityType } from 'discord.js';
 import cron from 'node-cron';
 import config from '../config.json' assert { type: "json" };
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
@@ -77,23 +77,25 @@ client.on('interactionCreate', async interaction => {
   }
 
 	if (interaction.commandName === 'ping') {
+    const sent = await interaction.reply({ content: 'Pinging...', fetchReply: true, ephemeral: true});
 		const embed = new EmbedBuilder()
 			.setTitle('🏓 Pong')
-			.setDescription(`${client.ws.ping}ms`)
+			.setDescription(`Uptime: ${Math.round(interaction.client.uptime / 60000)}\nLatency: ${sent.createdTimestamp - interaction.createdTimestamp}ms`)
 			.setTimestamp();
-		await interaction.reply({ embeds: [embed], ephemeral: true });
+
+    await interaction.editReply({ content: '', embeds: [embed] })		// await interaction.reply({ embeds: [embed], ephemeral: true });
 	}
 });
 
 client.on('ready', async () => {
   console.log(`Logged in as ${client.user.tag}!`);
-	client.user.setPresence({
-        status: "online",
-        game: {
-            name: "르마갤", 
-            type: "WATCHING" 
-        }
-    });
+	
+	client.user.setActivity({
+		name: '르마갤',
+		type: ActivityType.Watching,
+		url: `https://discord.com/channels/${config.guildId}/${config.gallaryId}`
+	});
+
 	cron.schedule("0 0,12,22 * * *", () => {
 		console.log('sent a ranking');
 		sendRanking();
