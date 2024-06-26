@@ -78,6 +78,13 @@ client.on('interactionCreate', async interaction => {
 
 client.on('ready', async () => {
   console.log(`Logged in as ${client.user.tag}!`);
+	client.user.setPresence({
+        status: "online",
+        game: {
+            name: "르마갤", 
+            type: "WATCHING" 
+        }
+    });
 	cron.schedule("0 0,12,22 * * *", () => {
 		console.log('sent a ranking');
 		sendRanking();
