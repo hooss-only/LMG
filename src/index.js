@@ -75,6 +75,14 @@ client.on('interactionCreate', async interaction => {
 		const rankingEmbed = await getRankingEmbed()
 		await interaction.reply({ embeds: [rankingEmbed] });
   }
+
+	if (interaction.commandName === 'ping') {
+		const embed = new EmbedBuilder()
+			.setTitle('🏓 Pong')
+			.setDescription(`${client.ws.ping}ms`)
+			.setTimestamp();
+		await interaction.reply({ embeds: [embed], ephemeral: true });
+	}
 });
 
 client.on('ready', async () => {
