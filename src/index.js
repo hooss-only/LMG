@@ -61,6 +61,7 @@ const getRankingEmbed = async () => {
 
 	const rankingEmbed = new EmbedBuilder()
 		.setTitle('오늘의 개념글')
+		.setColor(0x4b59a7)
 		.setTimestamp()
 		.setFooter({ text: '최근 5일 상위 5개글' })
 		.setDescription(description);
