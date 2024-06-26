@@ -6,6 +6,10 @@ const commands = [
     name: 'rank',
     description: '오늘 기준 개념글을 알려 드립니다.',
   },
+	{
+		name: 'ping',
+		description: '봇과 디스코드 서버 사이의 핑을 측정합니다.',
+	}
 ];
 
 const rest = new REST({ version: '10' }).setToken(config.token);
